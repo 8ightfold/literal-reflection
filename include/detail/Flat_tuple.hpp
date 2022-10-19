@@ -1,6 +1,7 @@
 #ifndef STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
 #define STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
 
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 
