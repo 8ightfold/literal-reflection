@@ -5,19 +5,19 @@
 
 #if defined(COMPILER_GCC)
 #  define $func_name __PRETTY_FUNCTION__
-#  define $pretty_front "constexpr auto rflct::extract_typename_impl() [with T = "
+#  define $pretty_front "constexpr auto rflct::type_name_impl() [with T = "
 #  define $pretty_back "]"
 #elif defined(COMPILER_CLANG)
 #  define $func_name __PRETTY_FUNCTION__
-#  define $pretty_front "auto rflct::extract_typename_impl() [T = "
+#  define $pretty_front "auto rflct::type_name_impl() [T = "
 #  define $pretty_back "]"
 #elif defined(COMPILER_MSVC)
 #  define $func_name __FUNCSIG__
-#  define $pretty_front "auto __cdecl rflct::extract_typename_impl<"
+#  define $pretty_front "auto __cdecl rflct::type_name_impl<"
 #  define $pretty_back ">(void)"
 #elif defined(COMPILER_ICC)
 #  define $func_name __PRETTY_FUNCTION__
-#  define $pretty_front "constexpr auto rflct::extract_typename_impl() [with T = "
+#  define $pretty_front "constexpr auto rflct::type_name_impl() [with T = "
 #  define $pretty_back "]"
 #else
 #  define $func_name "<null>"
