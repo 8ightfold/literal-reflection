@@ -133,6 +133,6 @@ namespace rflct::detail {
 }
 
 template <std::size_t N>
-constexpr auto I = Integral<N>{};
+constexpr auto I = rflct::detail::Integral<N>{};
 
 #endif //STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
