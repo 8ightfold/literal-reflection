@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -38,42 +39,83 @@ namespace rflct {
     template <char...CC>
     struct Char_pack {
         static constexpr char const data[sizeof...(CC)]{CC...};
+        static constexpr std::size_t size = sizeof...(CC);
         static_assert(data[sizeof...(CC) - 1] == '\0', "interned string was too long, see $(...) macro");
     };
 
-    template <char...CC>
-    constexpr char const Char_pack<CC...>::data[];
+    constexpr std::size_t max_str_len = static_cast<std::size_t>(-1);
 
     template <typename T>
-    struct is_char_pack {
-        static constexpr bool value = false;
-    };
+    struct is_char_pack : std::false_type {};
 
     template <char...NN>
-    struct is_char_pack<Char_pack<NN...> > {
-        static constexpr bool value = true;
-    };
+    struct is_char_pack<Char_pack<NN...>> : std::true_type {};
+
+    template <typename T>
+    constexpr bool is_char_pack_v = is_char_pack<T>::value;
 
     template <std::size_t Pos, char...CC, std::size_t...NN>
-    consteval auto make_substr_pack(Char_pack<CC...>, std::index_sequence<NN...>) {
+    constexpr auto make_substr_pack(Char_pack<CC...>, std::index_sequence<NN...>) {
         static_assert(sizeof...(NN) < sizeof...(CC) - Pos, "Out of bounds index.");
         return Char_pack<Char_pack<CC...>::data[Pos + NN]..., '\0'>{};
     }
 
     template <typename S, std::size_t Pos, std::size_t Count>
     class make_substr_pack_t {
-            static constexpr auto value = make_substr_pack<Pos>(S{}, std::make_index_sequence<Count>{});
-        public:
-            using type = typename std::remove_cv_t<decltype(value)>;
+        static constexpr auto value = make_substr_pack<Pos>(S{}, std::make_index_sequence<Count>{});
+    public:
+        using type = typename std::remove_cv_t<decltype(value)>;
     };
 
     template <typename S, std::size_t Pos, std::size_t Count>
     using substr_t = typename make_substr_pack_t<S, Pos, Count>::type;
+
+    template <typename S, typename Cmp>
+    constexpr bool begins_with_impl() {
+        static_assert(is_char_pack_v<S> && is_char_pack_v<Cmp>, "Template arguments must be Char_packs.");
+        constexpr std::size_t Count = Cmp::size;
+        if constexpr(Count > S::size) return false;
+        else {
+            using S_front = substr_t<S, 0, Count - 1>;
+            return std::is_same_v<S_front, Cmp>;
+        }
+    }
+
+    template <typename S, typename Cmp>
+    constexpr bool begins_with_v = begins_with_impl<S, Cmp>();
+
+    template <typename F, std::size_t...NN, char...SS>
+    constexpr auto concat_impl(std::index_sequence<NN...>, Char_pack<SS...>) {
+        return Char_pack<F::data[NN]..., SS...>{};
+    }
+
+    template <typename F, typename S>
+    class Concat_string {
+        static constexpr std::size_t F_len = sizeof(F::data) - 1;
+        static constexpr auto value = concat_impl<F>(std::make_index_sequence<F_len>(), S{});
+    public:
+        using type = typename std::remove_cv_t<decltype(value)>;
+    };
+
+    template <typename F, typename S>
+    using concat_t = typename Concat_string<F, S>::type;
+
+    template <typename S, typename Sub>
+    constexpr std::size_t find_impl() {
+        static_assert(is_char_pack_v<S> && is_char_pack_v<Sub>, "Must be used with char packs.");
+        constexpr std::string_view base { S::data };
+        constexpr std::string_view locate { Sub::data };
+
+        return base.find(locate);
+    }
+
+    template <typename S, typename Sub>
+    constexpr std::size_t find_v = find_impl<S, Sub>();
 }
 
 # if SHOULD_USE_NEW_STRING_INTERNING
 #  define $( s ) s
-#  define $post( s ) rflct::str_t<s>
+#  define $post(s) rflct::str_t< rflct::String{ s } >
 #  define $String( S ) rflct::String String_value, typename S = rflct::str_t<String_value>
 
 namespace rflct {
@@ -126,8 +168,13 @@ namespace rflct::detail {
 
 #  if SHOULD_USE_LITERAL_OPERATOR_TEMPLATE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-string-literal-operator-template"
+
 template <typename T, T... CC>
 auto operator ""_intern_string() { return rflct::Char_pack<CC..., T{}>{}; }
+
+#pragma GCC diagnostic pop
 
 #   define $( s ) decltype( s ## _intern_string )
 #   define $post( s ) UTIL_CAT($, LITERAL_POWER) ( s )

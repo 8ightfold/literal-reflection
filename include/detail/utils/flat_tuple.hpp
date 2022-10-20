@@ -107,7 +107,7 @@ namespace rflct::detail {
         };
 
     public:
-        Flat_tuple(TT&&...tt) : inherited_t { std::forward<TT>(tt)... } {}
+        constexpr Flat_tuple(TT&&...tt) : inherited_t { std::forward<TT>(tt)... } {}
 
         template <std::size_t N>
         using type_at = typename type_at_impl<(N < sizeof...(TT)), N>::type;

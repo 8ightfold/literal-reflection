@@ -3,12 +3,12 @@
 
 #if defined(__clang__)
 #  define COMPILER_CLANG
+#elif defined(__INTEL_COMPILER)
+#  define COMPILER_ICC
 #elif defined(__GNUC__)
 #  define COMPILER_GCC
 #elif defined(_MSC_VER) || defined(_MSVC_LANG)
 #  define COMPILER_MSVC
-#elif defined(__INTEL_COMPILER)
-#  define COMPILER_ICC
 #else
 #  define COMPILER_UNKNOWN
 #endif
