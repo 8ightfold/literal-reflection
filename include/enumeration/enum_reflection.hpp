@@ -1,7 +1,7 @@
 #ifndef STATIC_REFLECTION_ENUM_REFLECTION_HPP
 #define STATIC_REFLECTION_ENUM_REFLECTION_HPP
 
-#include "./extract_typename.hpp"
+#include "../detail/extract_typename.hpp"
 
 #ifndef ENUM_REFLECTION_RANGE
 #  define ENUM_REFLECTION_RANGE 8192
@@ -78,12 +78,62 @@ namespace rflct {
 
     template <typename E>
     constexpr auto reflect_enum() {
+        static_assert(std::is_enum_v<E>, "Must be used with an enum.");
         constexpr auto& values = enum_sequence_v<E>;
         return reflect_enum_impl<E>(std::make_index_sequence<values.size()>());
     }
 
     template <typename E>
     constexpr auto reflect_enum_v = reflect_enum<E>();
+
+    template <typename E>
+    constexpr std::size_t enum_max() {
+        static_assert(std::is_enum_v<E>, "Must be used with an enum.");
+        constexpr auto& enums = enum_sequence_v<E>;
+        return static_cast<std::size_t>( enums[enums.size() - 1] ) + 1;
+    }
+
+    template <typename E, std::size_t N>
+    constexpr std::string_view reflect_enum_value_or_empty() {
+        if constexpr(is_valid_enum_v<E, N>) {
+            return $reflect_auto(static_cast<E>(N))::data;
+        }
+        else return "" ;
+    }
+
+    template <typename E, std::size_t...NN>
+    constexpr auto quick_reflect_enum_impl(std::index_sequence<NN...>) {
+        static_assert(std::is_enum_v<E>, "Must be used with an enum.");
+        return std::array<std::string_view, sizeof...(NN)> { reflect_enum_value_or_empty<E, NN>()... };
+    }
+
+    template <typename E>
+    constexpr auto quick_reflect_enum() {
+        constexpr std::size_t count = enum_max<E>();
+        return quick_reflect_enum_impl<E>(std::make_index_sequence<count>());
+    }
+
+    template <typename E>
+    constexpr auto quick_reflect_enum_v = quick_reflect_enum<E>();
+
+    namespace enum_literals {
+        template <typename E, std::enable_if_t<std::is_enum_v<E>, bool> = true>
+        std::ostream& operator<<(std::ostream& os, const E& e) {
+            constexpr auto& enums = rflct::quick_reflect_enum_v<E>;
+            return os << enums[static_cast<std::size_t>(e)];
+        }
+    }
 }
+
+/*
+#define REFLECT(type)                                                        \
+do {                                                                        \
+    std::cout << "Reflecting " << rflct::type_name_t<type>::data << ": \n";   \
+        for(auto& s : rflct::reflect_enum_v<type>) {                          \
+        std::cout << s << ' ';                                              \
+    }                                                                       \
+    std::cout << '\n';                                                      \
+} while(0)
+ */
 
 #endif //STATIC_REFLECTION_ENUM_REFLECTION_HPP

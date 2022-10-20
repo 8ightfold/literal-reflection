@@ -40,7 +40,8 @@ namespace rflct {
     struct Char_pack {
         static constexpr char const data[sizeof...(CC)]{CC...};
         static constexpr std::size_t size = sizeof...(CC);
-        static_assert(data[sizeof...(CC) - 1] == '\0', "interned string was too long, see $(...) macro");
+
+        //static_assert(data[sizeof...(CC) - 1] == '\0', "interned string was too long, see $(...) macro");
     };
 
     constexpr std::size_t max_str_len = static_cast<std::size_t>(-1);

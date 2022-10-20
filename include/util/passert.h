@@ -1,7 +1,7 @@
 #ifndef STATIC_REFLECTION_PASSERT_HPP
 #define STATIC_REFLECTION_PASSERT_HPP
 
-#include "../compiler_macros.h"
+#include "../detail/compiler_macros.h"
 
 #ifdef COMPILER_MSVC
 #  include <assert.h>

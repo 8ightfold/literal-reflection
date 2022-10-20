@@ -60,7 +60,7 @@ namespace rflct {
     using type_name_t = typename Type_name<T>::type;
 
 
-#if COMPILER_CPP_VERSION >= 202000L && !defined(COMPILER_ICC) && false
+#if COMPILER_CPP_VERSION >= 202000L && !defined(COMPILER_ICC)
     template <auto V>
     constexpr auto auto_name_impl() {
         constexpr std::size_t Pos = sizeof($auto_pretty_front) - 1;
