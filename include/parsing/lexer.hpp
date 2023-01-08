@@ -1,10 +1,10 @@
 #ifndef LITERAL_TYPE_HPP_LEXER_HPP
 #define LITERAL_TYPE_HPP_LEXER_HPP
 
-#include "enumeration/enum_reflection.hpp"
-#include "util/tuple.hpp"
-#include "util/type_list.hpp"
-#include "util/type_pair.hpp"
+#include "../enumeration/enum_reflection.hpp"
+#include "../util/tuple.hpp"
+#include "../util/type_list.hpp"
+#include "../util/type_pair.hpp"
 
 namespace rflct {
     template <char C>

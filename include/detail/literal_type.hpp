@@ -30,6 +30,8 @@
 #endif
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 #include <type_traits>
@@ -40,7 +42,7 @@ namespace rflct {
     struct Char_pack {
         static constexpr char const data[sizeof...(CC)]{CC...};
         static constexpr std::size_t size = sizeof...(CC);
-
+        static constexpr std::size_t count = size - 1;
         //static_assert(data[sizeof...(CC) - 1] == '\0', "interned string was too long, see $(...) macro");
     };
 
@@ -112,6 +114,33 @@ namespace rflct {
 
     template <typename S, typename Sub>
     constexpr std::size_t find_v = find_impl<S, Sub>();
+
+    template <char...CC>
+    constexpr auto remove_terminator_impl(Char_pack<CC...>) {
+        constexpr std::array<char, sizeof...(CC)> chars { CC... };
+        if constexpr(chars[chars.size() - 1] == '\0') {
+            return [] <std::size_t...NN> (std::index_sequence<NN...>) {
+                constexpr std::string_view str { Char_pack<CC...>::data, sizeof...(CC) - 1 };
+                return Char_pack<str[NN]...>{};
+            } (std::make_index_sequence<sizeof...(CC) - 1>());
+        }
+        else return Char_pack<CC...>{};
+    }
+
+    template <typename S>
+    using remove_terminator_t = decltype(remove_terminator_impl(S{}));
+
+    template <char...CC>
+    constexpr auto add_terminator_impl(Char_pack<CC...>) {
+        constexpr std::array<char, sizeof...(CC)> chars { CC... };
+        if constexpr(chars[chars.size() - 1] != '\0') {
+            return Char_pack<CC..., '\0'>{};
+        }
+        else return Char_pack<CC...>{};
+    }
+
+    template <typename S>
+    using add_terminator_t = decltype(add_terminator_impl(S{}));
 }
 
 # if SHOULD_USE_NEW_STRING_INTERNING

@@ -1,22 +1,8 @@
 #ifndef STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
 #define STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
 
-#include <cstddef>
 #include <type_traits>
-#include <utility>
-
-namespace rflct {
-    template <std::size_t N>
-    using Integral = std::integral_constant<std::size_t, N>;
-
-    template <typename T>
-    struct Type {
-        using type = T;
-    };
-
-    template <std::size_t N>
-    using Seq = decltype(std::make_index_sequence<N>());
-}
+#include "short_types.hpp"
 
 namespace rflct::util {
     namespace detail {
@@ -90,11 +76,5 @@ namespace rflct::util {
     template <typename...TT>
     Tuple(TT&&...tt) -> Tuple<decltype(static_cast<TT>(tt))...>;
 }
-
-template <std::size_t N>
-constexpr auto I = rflct::Integral<N>{};
-
-template <typename U>
-constexpr auto T = rflct::Type<U>{};
 
 #endif //STATIC_REFLECTION_DETAIL_FLAT_TUPLE_HPP
